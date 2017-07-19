@@ -1,13 +1,28 @@
+package com.chattopadhyaya.icyspellchecker.util;
 import java.util.Arrays;
 import java.util.List;
 
 
 public class IcyDistance
 {
+	String source = null;
+	double defaultWorkspace[]; 
+	public IcyDistance(String source) {
+		this.source = source;
+		defaultWorkspace = getWorkspace(source.length(), source.length()*2);
+		
+	}
+	
+	public IcyDistance() {
+		source = "";
+	}
+	
 
-	static double SUBSTITUTION (char s, char t, int index) {
+	private double SUBSTITUTION (char s, char t, int index) {
 		char keyboard[][] = {"qwertyuiop".toCharArray(), "asdfghjkl;".toCharArray(), "zxcvbnm,./".toCharArray()};
 		List<Character> vowels = Arrays.asList('a', 'e', 'i', 'o', 'u'); 
+		
+		// Keyboard error penalized lesser
 		for (int r=0; r<3; r++)
 			for (int c=0; c<keyboard[r].length; c++)
 				if (keyboard[r][c]==s && (
@@ -16,18 +31,28 @@ public class IcyDistance
 						(r>=1 						&& keyboard[r-1][c]==t) ||
 						(r<=1					 	&& keyboard[r+1][c]==t) ))
 					return 0.8;
+		
+		// Vowel interchange penalized lesser
 		if (vowels.contains(s) && vowels.contains(t))
 			return 0.8;
+		
+		// Penalize a mismatch of the first character
 		if (index==0)
-			return 1.2;
+			return 1.5;
+		
+		// Default penalty
 		return 1;
 	}
-	public static double damlev(String s, String t, double[] workspace)
+
+	private double damlev(String s, String t, double[] workspace, boolean weighted)
 	{
-		double DELETION = 1.0;
-		double INSERTION = 1.1;
+		double DELETION = 1.2;
+		double INSERTION = 1.2;
 		double TRANSPOSITION = 0.8;
-		//double SUBSTITUTION = 1.2;
+
+		if (!weighted) {
+			DELETION = INSERTION = TRANSPOSITION = 1;
+		} 
 
 		int lenS = s.length();
 		int lenT = t.length();
@@ -83,7 +108,11 @@ public class IcyDistance
 
 				char sChar = sIndex<s.length()?s.charAt(sIndex):'\0';
 				char tChar = tIndex<t.length()?t.charAt(tIndex):'\0';
-				if (cost!=0) cost = SUBSTITUTION(sChar, tChar, sIndex);
+				if (weighted) {
+					if (cost!=0) cost = SUBSTITUTION(sChar, tChar, sIndex);
+				}
+				else 
+					if (sChar!=tChar) cost = 1.0;
 				//if (cost!=0) System.out.println("Subs of: "+s.charAt(sIndex)+", "+t.charAt(tIndex));
 				// substitution
 				tmp = dl[rowBefore - 1] + cost; 
@@ -108,40 +137,45 @@ public class IcyDistance
 		return dl[dlIndex];
 	}
 	
-	static boolean DEBUG = false;
+	boolean DEBUG = false;
 
-	public static double[] getWorkspace(int sl, int tl)
+	private double[] getWorkspace(int sl, int tl)
 	{
 		return new double[(sl + 1) * (tl + 1)];
 	}
-	private final static double[] ZERO_LENGTH_INT_ARRAY = new double[0];
+	private final double[] ZERO_LENGTH_INT_ARRAY = new double[0];
 
-	static DoubleMeta dm = new DoubleMeta();
-	public static double getDistance (String s, String t)
+	public double getDistance (String s, String t)
 	{
-		double value;
+		double value = Double.MAX_VALUE;
 		if (s != null && t != null)
-			value = damlev(s, t, getWorkspace(s.length(), t.length()));
-		else
-			value = damlev(s, t, ZERO_LENGTH_INT_ARRAY);
-		if (dm.transform(s).equals(dm.transform(t))) {
-			value*=0.9;
-		} else {
-			//System.out.println("S: "+dm.transform(s)+", T: "+dm.transform(t));
-		}
-		value/=t.length();
+			value = damlev(s, t, getWorkspace(s.length(), t.length()), false);
 		return value;
 	}
 
-	public static void main(String[] args) throws Exception
-	{
-		//System.out.println(damlev("pooland", "pooliand"));
-		
-		//System.out.println(damlev("12xy45", "12yx45"));
-		System.out.println(getDistance("off", "of"));
-		System.out.println(getDistance("o", "of"));
-		System.out.println(getDistance("portland", "portland"));
-		System.out.println(getDistance("phoenix", "pheonix"));
+	public double getDistance (String target) {
+		double value = Double.MAX_VALUE;
+		if (source!=null && target!=null)
+			value = damlev(source, target, defaultWorkspace, false);
+		return value;
 
 	}
+	
+	DoubleMeta dm = new DoubleMeta();
+	public double getWeightedDistance (String s, String t)
+	{
+		double value;
+		if (s != null && t != null)
+			value = damlev(s, t, getWorkspace(s.length(), t.length()), true);
+		else
+			value = damlev(s, t, ZERO_LENGTH_INT_ARRAY, true);
+		if (dm.transform(s).equals(dm.transform(t))) {
+			value*=0.8;
+		} else {
+			//System.out.println("S: "+dm.transform(s)+", T: "+dm.transform(t));
+		}
+		//value/=t.length();
+		return value;
+	}
+
 }

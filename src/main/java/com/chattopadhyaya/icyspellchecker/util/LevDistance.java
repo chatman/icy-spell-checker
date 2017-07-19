@@ -1,24 +1,9 @@
+package com.chattopadhyaya.icyspellchecker.util;
 
-import java.util.ArrayList;
-import java.util.List;
+public class LevDistance  {
 
-/**
- * Huge list of different algos, in Java:
- * http://www.dcs.shef.ac.uk/~sam/stringmetrics.html
- * 
- * Simplified "similarity", even more logical matching, very fast:
- * http://www.catalysoft.com/articles/StrikeAMatch.html
- * 
- * 
- */
-public class DistanceImpl  {
-
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 2500074193870388476L;
-
-	public DistanceImpl() {
+	public LevDistance() {
+		
 	}
 
 	public int getDistance(Object target, Object other) {
@@ -103,39 +88,5 @@ public class DistanceImpl  {
 		return p[n];
 	}
 
-	/**
-	 * http://www.catalysoft.com/articles/StrikeAMatch.html
-	 * 
-	 * @return an array of adjacent letter pairs contained in the input string
-	 */
-	private static List<String> letterPairs(String str) {
-		List<String> pairs = new ArrayList<String>();
-		for (int i = 0; i < str.length() - 1; i++) {
-			pairs.add(str.substring(i, i + 2));
-		}
-		return pairs;
-	}
-
-	/**
-	 * http://www.catalysoft.com/articles/StrikeAMatch.html
-	 * 
-	 * @return lexical similarity value in the range [0,1]
-	 */
-	public static int compareStrings(String str1, String str2) {
-		List<String> pairs1 = letterPairs(str1);
-		List<String> pairs2 = letterPairs(str2);
-		int intersection = 0;
-		int union = pairs1.size() + pairs2.size();
-		for (int i = 0; i < pairs1.size(); i++) {
-			for (int j = 0; j < pairs2.size(); j++) {
-				if (pairs1.get(i).equals(pairs2.get(j))) {
-					intersection++;
-					pairs2.remove(j);
-					break;
-				}
-			}
-		}
-		return union - (intersection + 1) * 2;
-	}
 
 }

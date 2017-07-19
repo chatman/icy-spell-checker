@@ -1,3 +1,4 @@
+package com.chattopadhyaya.icyspellchecker.util;
 
 /**
  * A phonetic encoding algorithm that takes an English word and computes a phonetic version of it. This

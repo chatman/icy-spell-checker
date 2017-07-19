@@ -1,3 +1,4 @@
+package com.chattopadhyaya.icyspellchecker.util;
 
 import java.io.EOFException;
 import java.io.FileInputStream;
